@@ -156,6 +156,10 @@ button {
   align-self: start;
 }
 
+.panel-with-action-dock {
+  position: relative;
+}
+
 .home-panel {
   grid-column: span 4;
 }
@@ -197,6 +201,10 @@ button {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 18px;
+}
+
+.action-dock {
+  position: relative;
 }
 
 .button-row-spread {
@@ -798,6 +806,39 @@ button {
     flex-direction: column;
   }
 
+  .panel-with-action-dock {
+    padding-bottom: 106px;
+  }
+
+  .action-dock {
+    position: sticky;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    z-index: 20;
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(22, 33, 43, 0.08);
+    box-shadow: 0 10px 28px rgba(22, 33, 43, 0.12);
+    backdrop-filter: blur(12px);
+  }
+
+  .action-dock .button-row {
+    margin-top: 0;
+  }
+
+  .action-dock.button-row-spread {
+    gap: 10px;
+  }
+
+  .action-dock.button-row-spread > .button-row {
+    width: 100%;
+  }
+
+  .action-dock.button-row-spread > .button-row > * {
+    flex: 1 1 calc(50% - 6px);
+  }
+
   .progress-label-row,
   .result-bar-header,
   .question-metadata,
@@ -871,6 +912,21 @@ button {
   .flashcard-mini-stats strong {
     font-size: 1.05rem;
   }
+
+  .panel-with-action-dock {
+    padding-bottom: 118px;
+  }
+
+  .action-dock {
+    left: -4px;
+    right: -4px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+    padding: 10px;
+  }
+
+  .action-dock.button-row-spread > .button-row > * {
+    flex: 1 1 100%;
+  }
 }
 
 @media (max-width: 400px) {
@@ -890,5 +946,9 @@ button {
   .primary-button,
   .ghost-button {
     width: 100%;
+  }
+
+  .panel-with-action-dock {
+    padding-bottom: 128px;
   }
 }

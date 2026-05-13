@@ -1267,7 +1267,7 @@ function AppContent() {
             </div>
           </aside>
 
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             <div className="simulation-banner">
               <p>Vous êtes en conditions d'examen : les corrections seront visibles à la fin.</p>
             </div>
@@ -1313,7 +1313,7 @@ function AppContent() {
               </div>
             )}
 
-            <div className="button-row button-row-spread">
+            <div className="button-row button-row-spread action-dock">
               <div className="button-row">
                 <button
                   type="button"
@@ -1351,14 +1351,14 @@ function AppContent() {
 
       {view === "simulation" && activeSimulation && !currentSimulationUnit && (
         <main className="workspace-grid workspace-grid-single">
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             <div className="section-badge">Session invalide</div>
             <h2>La simulation en cours semble incomplète.</h2>
             <p>
               Cela peut arriver si une ancienne session sauvegardée ne correspond plus à la nouvelle
               version de l'application.
             </p>
-            <div className="button-row">
+            <div className="button-row action-dock">
               <button type="button" className="primary-button" onClick={startSimulation}>
                 Lancer une nouvelle simulation
               </button>
@@ -1372,7 +1372,7 @@ function AppContent() {
 
       {view === "simulation" && !activeSimulation && (
         <main className="workspace-grid workspace-grid-single">
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             <div className="section-badge">Simulation examen</div>
             <h2>Prêt à lancer une simulation complète ?</h2>
             <p>
@@ -1389,7 +1389,7 @@ function AppContent() {
               <li>Section B : 10 questions moyennes</li>
               <li>Section C : 5 scénarios</li>
             </ul>
-            <div className="button-row">
+            <div className="button-row action-dock">
               <button type="button" className="primary-button" onClick={startSimulation}>
                 Commencer la simulation
               </button>
@@ -1403,7 +1403,7 @@ function AppContent() {
 
       {view === "learn" && learnSession && currentLearnQuestion && (
         <main className="workspace-grid workspace-grid-single">
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             <div className="question-metadata">
               <span className="meta-pill">{learnSession.label}</span>
               <span className="meta-pill meta-pill-muted">{currentLearnQuestion.category}</span>
@@ -1451,7 +1451,7 @@ function AppContent() {
               </div>
             )}
 
-            <div className="button-row">
+            <div className="button-row action-dock">
               {!currentLearnFeedback ? (
                 <button type="button" className="primary-button" onClick={submitLearnQuestion}>
                   Voir la correction
@@ -1476,14 +1476,14 @@ function AppContent() {
 
       {view === "learn" && (!learnSession || !currentLearnQuestion) && (
         <main className="workspace-grid workspace-grid-single">
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             <div className="section-badge">Entraînement</div>
             <h2>Aucune question disponible pour cette sélection.</h2>
             <p>
               Changez de catégorie ou relancez un entraînement global. Si vous arriviez depuis une
               ancienne session, l'application a probablement filtré un état obsolète.
             </p>
-            <div className="button-row">
+            <div className="button-row action-dock">
               <button
                 type="button"
                 className="primary-button"
@@ -1505,7 +1505,7 @@ function AppContent() {
 
       {view === "flashcards" && flashcard && (
         <main className="workspace-grid workspace-grid-single">
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             <div className="question-metadata">
               <span className="meta-pill">Révision rapide</span>
               <span className="meta-pill meta-pill-muted">
@@ -1532,7 +1532,7 @@ function AppContent() {
                 </p>
               )}
             </div>
-            <div className="button-row">
+            <div className="button-row action-dock">
               {!flashcardSession.revealed ? (
                 <button
                   type="button"
@@ -1576,7 +1576,7 @@ function AppContent() {
 
       {view === "results" && lastResult && (
         <main className="dashboard-grid">
-          <section className="surface home-panel home-panel-large">
+          <section className="surface home-panel home-panel-large panel-with-action-dock">
             <div className="section-badge">{lastResult.mode}</div>
             <h2>Résultats de session</h2>
             <div className="result-kpis">
@@ -1666,7 +1666,7 @@ function AppContent() {
                 </div>
               </div>
             )}
-            <div className="button-row">
+            <div className="button-row action-dock">
               <button type="button" className="primary-button" onClick={startMistakeReview}>
                 Refaire mes erreurs
               </button>
@@ -1702,7 +1702,7 @@ function AppContent() {
 
       {view === "history" && (
         <main className="workspace-grid">
-          <section className="surface sidebar">
+          <section className="surface sidebar panel-with-action-dock">
             <h2>Historique</h2>
             <p>Sessions locales enregistrées sur ce navigateur.</p>
             <div className="stack-list">
@@ -1721,14 +1721,14 @@ function AppContent() {
                 </button>
               ))}
             </div>
-            <div className="button-row">
+            <div className="button-row action-dock">
               <button type="button" className="ghost-button" onClick={clearHistory}>
                 Supprimer l'historique
               </button>
             </div>
           </section>
 
-          <section className="surface main-panel">
+          <section className="surface main-panel panel-with-action-dock">
             {selectedHistory ? (
               <>
                 <div className="section-badge">{selectedHistory.mode}</div>
@@ -1780,7 +1780,7 @@ function AppContent() {
             <div className="section-badge">Travail ciblé</div>
             <h2>Mes erreurs</h2>
             <p>Questions ratées ou partielles, à refaire pour consolider les notions fragiles.</p>
-            <div className="button-row">
+            <div className="button-row action-dock">
               <button type="button" className="primary-button" onClick={startMistakeReview} disabled={!mistakesList.length}>
                 Refaire toutes mes erreurs
               </button>
