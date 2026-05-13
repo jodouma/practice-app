@@ -1212,8 +1212,8 @@ function AppContent() {
       )}
 
       {view === "simulation" && activeSimulation && currentSimulationUnit && (
-        <main className="workspace-grid">
-          <aside className="surface sidebar">
+        <main className="workspace-grid simulation-layout">
+          <aside className="surface sidebar simulation-sidebar">
             <Timer remainingSeconds={simulationRemainingSeconds} />
             <ProgressBar
               value={simulationProgress.answered}
@@ -1267,7 +1267,75 @@ function AppContent() {
             </div>
           </aside>
 
-          <section className="surface main-panel panel-with-action-dock">
+          <section className="surface main-panel panel-with-action-dock simulation-main">
+            <div className="mobile-only simulation-mobile-summary">
+              <div className="mobile-summary-grid">
+                <div className="kpi-card">
+                  <span>Temps restant</span>
+                  <strong>{formatDuration(simulationRemainingSeconds)}</strong>
+                </div>
+                <div className="kpi-card">
+                  <span>Progression</span>
+                  <strong>
+                    {simulationProgress.answered} / {simulationProgress.total}
+                  </strong>
+                </div>
+                <div className="kpi-card">
+                  <span>Section active</span>
+                  <strong>{EXAM_CONFIG.sections[simulationProgress.section]?.label || "Simulation"}</strong>
+                </div>
+              </div>
+              <details className="mobile-details">
+                <summary>Ouvrir le plan de la simulation</summary>
+                <div className="mobile-details-body">
+                  <div className="section-summary">
+                    <h3>Sections</h3>
+                    {Object.entries(EXAM_CONFIG.sections).map(([key, section]) => (
+                      <button
+                        key={`mobile-${key}`}
+                        type="button"
+                        className={`section-chip ${simulationProgress.section === key ? "section-chip-active" : ""}`}
+                        onClick={() => {
+                          const index = activeSimulation.units.findIndex((unit) => unit.section === key);
+                          if (index >= 0) goToSimulationUnit(index);
+                        }}
+                      >
+                        {section.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="autosave-card">
+                    <strong>Session sauvegardée automatiquement.</strong>
+                    <p>Dernière sauvegarde : {formatTimestamp(activeSimulation.autoSavedAt || Date.now())}</p>
+                  </div>
+                  <div className="unit-list mobile-unit-list">
+                    {activeSimulation.units.map((unit, index) => {
+                      const answered = unit.kind === "scenario"
+                        ? unit.questions.filter((question) => !isAnswerEmpty(question, activeSimulation.answersById[question.id])).length
+                        : !isAnswerEmpty(unit, activeSimulation.answersById[unit.id])
+                          ? 1
+                          : 0;
+                      return (
+                        <button
+                          key={`mobile-${unit.id}`}
+                          type="button"
+                          className={`unit-pill ${index === activeSimulation.currentUnitIndex ? "unit-pill-active" : ""} ${
+                            activeSimulation.flaggedUnitIds.includes(unit.id) ? "unit-pill-flagged" : ""
+                          }`}
+                          onClick={() => goToSimulationUnit(index)}
+                        >
+                          <span>{unit.section}</span>
+                          <strong>{unit.kind === "scenario" ? unit.title : `Question ${index + 1}`}</strong>
+                          <small>
+                            {answered}/{getUnitPromptCount(unit)} répondu(s)
+                          </small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </details>
+            </div>
             <div className="simulation-banner">
               <p>Vous êtes en conditions d'examen : les corrections seront visibles à la fin.</p>
             </div>
@@ -1701,8 +1769,8 @@ function AppContent() {
       )}
 
       {view === "history" && (
-        <main className="workspace-grid">
-          <section className="surface sidebar panel-with-action-dock">
+        <main className="workspace-grid history-layout">
+          <section className="surface sidebar panel-with-action-dock history-sidebar">
             <h2>Historique</h2>
             <p>Sessions locales enregistrées sur ce navigateur.</p>
             <div className="stack-list">
@@ -1728,7 +1796,7 @@ function AppContent() {
             </div>
           </section>
 
-          <section className="surface main-panel panel-with-action-dock">
+          <section className="surface main-panel panel-with-action-dock history-main">
             {selectedHistory ? (
               <>
                 <div className="section-badge">{selectedHistory.mode}</div>
