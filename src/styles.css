@@ -95,10 +95,13 @@ button {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 20px;
+  align-items: stretch;
 }
 
 .nav-tab {
+  flex-shrink: 0;
   padding: 10px 16px;
+  min-height: 44px;
   border-radius: 999px;
   background: rgba(253, 248, 239, 0.12);
   color: #fdf8ef;
@@ -147,6 +150,10 @@ button {
 .main-panel,
 .sidebar {
   padding: 22px;
+}
+
+.sidebar {
+  align-self: start;
 }
 
 .home-panel {
@@ -200,6 +207,7 @@ button {
 .primary-button,
 .ghost-button {
   padding: 12px 18px;
+  min-height: 46px;
   border-radius: 999px;
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
@@ -386,6 +394,7 @@ button {
 .history-pill {
   width: 100%;
   padding: 12px 14px;
+  min-height: 56px;
   background: rgba(22, 33, 43, 0.05);
   border: 1px solid rgba(22, 33, 43, 0.08);
   text-align: left;
@@ -453,6 +462,7 @@ button {
   gap: 12px;
   align-items: start;
   padding: 15px 16px;
+  min-height: 64px;
   border-radius: 20px;
   border: 1px solid rgba(13, 91, 99, 0.16);
   background: rgba(255, 255, 255, 0.95);
@@ -664,6 +674,16 @@ button {
   color: var(--muted);
 }
 
+@media (max-width: 1280px) {
+  .workspace-grid {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .hero h1 {
+    font-size: clamp(1.9rem, 4vw, 3rem);
+  }
+}
+
 @media (max-width: 1180px) {
   .home-panel,
   .home-panel-large {
@@ -674,8 +694,75 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .sidebar {
+    position: static;
+  }
+
+  .unit-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-summary {
+    align-items: stretch;
+  }
+
+  .section-chip {
+    width: auto;
+    flex: 1 1 180px;
+  }
+
   .button-row-spread {
     align-items: stretch;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    padding: 18px 14px 28px;
+  }
+
+  .hero {
+    padding: 22px 20px;
+    border-radius: 24px;
+  }
+
+  .hero-topline {
+    font-size: 0.78rem;
+  }
+
+  .home-panel,
+  .main-panel,
+  .sidebar {
+    padding: 18px;
+  }
+
+  .question-panel h2,
+  .home-panel h2,
+  .main-panel h2,
+  .sidebar h2 {
+    line-height: 1.15;
+  }
+
+  .unit-list {
+    grid-template-columns: 1fr;
+  }
+
+  .result-kpis,
+  .flashcard-mini-stats,
+  .learning-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .nav-tabs::-webkit-scrollbar {
+    height: 6px;
   }
 }
 
@@ -693,7 +780,115 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .nav-tabs {
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  .nav-tab {
+    padding: 10px 14px;
+    font-size: 0.94rem;
+  }
+
+  .button-row > * {
+    flex: 1 1 100%;
+  }
+
   .button-row-spread {
     flex-direction: column;
+  }
+
+  .progress-label-row,
+  .result-bar-header,
+  .question-metadata,
+  .section-summary {
+    align-items: flex-start;
+  }
+
+  .result-kpis,
+  .flashcard-mini-stats,
+  .learning-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .option-card {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .option-letter {
+    width: 30px;
+    height: 30px;
+  }
+
+  .scenario-question-card,
+  .flashcard-card,
+  .feedback-card,
+  .learning-summary-card {
+    padding: 14px;
+  }
+
+  .diagram-box {
+    padding: 12px;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .hero p,
+  .feature-list li,
+  .review-card p,
+  .scenario-context,
+  .instruction-line {
+    font-size: 0.96rem;
+  }
+
+  .home-panel,
+  .main-panel,
+  .sidebar {
+    padding: 16px;
+  }
+
+  .surface {
+    border-radius: 20px;
+  }
+
+  .section-badge,
+  .meta-pill,
+  .explanation-tag {
+    font-size: 0.76rem;
+  }
+
+  .timer-card strong {
+    font-size: 1.65rem;
+  }
+
+  .kpi-card strong,
+  .flashcard-mini-stats strong {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .app-shell {
+    padding: 12px 10px 20px;
+  }
+
+  .hero {
+    padding: 18px 14px;
+  }
+
+  .hero h1 {
+    font-size: 1.7rem;
+  }
+
+  .nav-tab,
+  .primary-button,
+  .ghost-button {
+    width: 100%;
   }
 }
