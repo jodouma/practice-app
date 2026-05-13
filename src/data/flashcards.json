@@ -1,0 +1,634 @@
+[
+  {
+    "id": "FLASH-001",
+    "term": "IAM User",
+    "definition": "Identité permanente dans un compte AWS pour un usage humain ou legacy très encadré.",
+    "awsExample": "Un utilisateur IAM peut encore exister pour un besoin précis, mais on préfère souvent la fédération.",
+    "frequentTrap": "Ne pas confondre utilisateur IAM et rôle IAM.",
+    "tags": [
+      "IAM",
+      "identité"
+    ]
+  },
+  {
+    "id": "FLASH-002",
+    "term": "IAM Role",
+    "definition": "Identité assumable fournissant des identifiants temporaires.",
+    "awsExample": "Un job Glue ou une application EC2 peut utiliser un rôle IAM.",
+    "frequentTrap": "Un rôle n'est pas un groupe d'utilisateurs.",
+    "tags": [
+      "IAM",
+      "credentials temporaires"
+    ]
+  },
+  {
+    "id": "FLASH-003",
+    "term": "IAM Policy",
+    "definition": "Document définissant des permissions via des actions, ressources et conditions.",
+    "awsExample": "Une policy peut autoriser `s3:GetObject` sur un bucket précis.",
+    "frequentTrap": "Une policy trop large viole vite le moindre privilège.",
+    "tags": [
+      "IAM",
+      "policy"
+    ]
+  },
+  {
+    "id": "FLASH-004",
+    "term": "Managed Policy",
+    "definition": "Policy réutilisable gérée par AWS ou par le client.",
+    "awsExample": "Une équipe peut réutiliser une policy maison pour plusieurs rôles.",
+    "frequentTrap": "Managed policy ne veut pas dire automatiquement sûre.",
+    "tags": [
+      "IAM",
+      "policy"
+    ]
+  },
+  {
+    "id": "FLASH-005",
+    "term": "Inline Policy",
+    "definition": "Policy attachée directement à une seule identité.",
+    "awsExample": "Utile pour un besoin très spécifique à un seul rôle.",
+    "frequentTrap": "Éviter d'en abuser si une policy réutilisable suffirait.",
+    "tags": [
+      "IAM",
+      "policy"
+    ]
+  },
+  {
+    "id": "FLASH-006",
+    "term": "Permission Boundary",
+    "definition": "Plafond de permissions effectives qu'une identité peut réellement obtenir.",
+    "awsExample": "On peut borner ce qu'un rôle créé par une équipe projet pourra faire.",
+    "frequentTrap": "Ce n'est pas un remplaçant des autres policies.",
+    "tags": [
+      "IAM",
+      "guardrail"
+    ]
+  },
+  {
+    "id": "FLASH-007",
+    "term": "Least Privilege",
+    "definition": "Principe consistant à n'accorder que le strict nécessaire.",
+    "awsExample": "Un rôle Glue lit une source précise et écrit une destination précise.",
+    "frequentTrap": "Éviter `Action:*` ou `Resource:*` sans justification.",
+    "tags": [
+      "IAM",
+      "principe"
+    ]
+  },
+  {
+    "id": "FLASH-008",
+    "term": "MFA",
+    "definition": "Facteur supplémentaire d'authentification en plus d'un mot de passe.",
+    "awsExample": "Activer MFA sur le compte root et sur les accès humains sensibles.",
+    "frequentTrap": "MFA renforce l'authentification, pas l'autorisation.",
+    "tags": [
+      "authentification"
+    ]
+  },
+  {
+    "id": "FLASH-009",
+    "term": "Authentification",
+    "definition": "Action de prouver son identité.",
+    "awsExample": "Se connecter via SSO avec mot de passe et MFA est une authentification.",
+    "frequentTrap": "Ne pas la confondre avec l'autorisation.",
+    "tags": [
+      "bases"
+    ]
+  },
+  {
+    "id": "FLASH-010",
+    "term": "Autorisation",
+    "definition": "Décision sur ce qu'une identité peut faire après authentification.",
+    "awsExample": "Une IAM policy décide si un rôle peut lire un bucket.",
+    "frequentTrap": "Le SSO n'accorde pas à lui seul les bons droits.",
+    "tags": [
+      "bases"
+    ]
+  },
+  {
+    "id": "FLASH-011",
+    "term": "Explicit Deny",
+    "definition": "Refus explicite qui l'emporte sur les autorisations applicables.",
+    "awsExample": "Une bucket policy avec `Deny` peut bloquer un `Allow` IAM.",
+    "frequentTrap": "Penser qu'un `Allow` plus large annule un `Deny`.",
+    "tags": [
+      "IAM",
+      "évaluation"
+    ]
+  },
+  {
+    "id": "FLASH-012",
+    "term": "Implicit Deny",
+    "definition": "Refus par défaut quand aucune autorisation applicable n'est trouvée.",
+    "awsExample": "Sans `Allow`, une action reste refusée.",
+    "frequentTrap": "L'absence d'autorisation n'est pas une autorisation cachée.",
+    "tags": [
+      "IAM",
+      "évaluation"
+    ]
+  },
+  {
+    "id": "FLASH-013",
+    "term": "CloudTrail",
+    "definition": "Service d'audit des appels API et actions AWS.",
+    "awsExample": "Il permet de retrouver quelle identité a modifié une permission.",
+    "frequentTrap": "Ne pas le confondre avec CloudWatch.",
+    "tags": [
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-014",
+    "term": "CloudWatch",
+    "definition": "Service de métriques, journaux, alertes et supervision.",
+    "awsExample": "Les logs d'exécution d'un job Glue peuvent être consultés via CloudWatch Logs.",
+    "frequentTrap": "CloudWatch ne remplace pas CloudTrail pour savoir qui a modifié IAM.",
+    "tags": [
+      "observabilité"
+    ]
+  },
+  {
+    "id": "FLASH-015",
+    "term": "S3 Bucket Policy",
+    "definition": "Policy de ressource attachée à un bucket S3.",
+    "awsExample": "Elle peut autoriser ou refuser des accès selon la ressource et le contexte.",
+    "frequentTrap": "Une bucket policy ne remplace pas une gouvernance d'identité côté demandeur.",
+    "tags": [
+      "S3",
+      "policy"
+    ]
+  },
+  {
+    "id": "FLASH-016",
+    "term": "S3 Public Access Block",
+    "definition": "Garde-fou aidant à limiter l'exposition publique involontaire.",
+    "awsExample": "Utile pour empêcher certaines erreurs de policy sur un bucket.",
+    "frequentTrap": "Ne pas croire qu'il remplace toute revue de permission.",
+    "tags": [
+      "S3",
+      "guardrail"
+    ]
+  },
+  {
+    "id": "FLASH-017",
+    "term": "IAM Identity Center",
+    "definition": "Service AWS pour centraliser l'accès humain à plusieurs comptes et applications.",
+    "awsExample": "Très utile dans un environnement multi-comptes.",
+    "frequentTrap": "Il ne remplace pas la définition des permissions.",
+    "tags": [
+      "SSO"
+    ]
+  },
+  {
+    "id": "FLASH-018",
+    "term": "SSO",
+    "definition": "Authentification unique vers plusieurs services ou comptes.",
+    "awsExample": "Un utilisateur s'authentifie une fois puis accède à plusieurs applications autorisées.",
+    "frequentTrap": "SSO ne signifie pas droits identiques pour tout le monde.",
+    "tags": [
+      "SSO"
+    ]
+  },
+  {
+    "id": "FLASH-019",
+    "term": "Fédération",
+    "definition": "Mécanisme permettant à une identité externe d'accéder à AWS sans créer partout un utilisateur IAM local.",
+    "awsExample": "Connexion d'un annuaire d'entreprise à AWS.",
+    "frequentTrap": "La fédération ne supprime pas le besoin de permissions fines.",
+    "tags": [
+      "SSO",
+      "fédération"
+    ]
+  },
+  {
+    "id": "FLASH-020",
+    "term": "RBAC",
+    "definition": "Contrôle d'accès basé sur des rôles.",
+    "awsExample": "Rôle 'analyste lecture' ou 'administrateur plateforme'.",
+    "frequentTrap": "RBAC n'utilise pas directement des tags de contexte.",
+    "tags": [
+      "modèles d'accès"
+    ]
+  },
+  {
+    "id": "FLASH-021",
+    "term": "ABAC",
+    "definition": "Contrôle d'accès basé sur des attributs.",
+    "awsExample": "Autoriser si `department=finance` et `environment=prod`.",
+    "frequentTrap": "ABAC demande des attributs fiables et bien gouvernés.",
+    "tags": [
+      "modèles d'accès"
+    ]
+  },
+  {
+    "id": "FLASH-022",
+    "term": "DAC",
+    "definition": "Contrôle d'accès discrétionnaire souvent piloté par le propriétaire.",
+    "awsExample": "Le propriétaire d'une ressource choisit à qui la partager.",
+    "frequentTrap": "Plus souple, mais potentiellement moins gouverné.",
+    "tags": [
+      "modèles d'accès"
+    ]
+  },
+  {
+    "id": "FLASH-023",
+    "term": "MAC",
+    "definition": "Contrôle d'accès obligatoire fondé sur des classifications imposées.",
+    "awsExample": "Contexte très réglementé avec niveaux de sensibilité.",
+    "frequentTrap": "Ne pas le confondre avec RBAC.",
+    "tags": [
+      "modèles d'accès"
+    ]
+  },
+  {
+    "id": "FLASH-024",
+    "term": "PII",
+    "definition": "Donnée permettant d'identifier une personne.",
+    "awsExample": "Nom, e-mail, numéro client ou identifiant personnel.",
+    "frequentTrap": "PII n'est pas qu'un sujet juridique : c'est aussi un sujet d'accès et de traçabilité.",
+    "tags": [
+      "données sensibles"
+    ]
+  },
+  {
+    "id": "FLASH-025",
+    "term": "Glue Role",
+    "definition": "Rôle IAM utilisé par un job AWS Glue pour accéder à ses ressources.",
+    "awsExample": "Lecture du bucket source, écriture du bucket cible, logs nécessaires.",
+    "frequentTrap": "Ne pas lui donner `AdministratorAccess` par facilité.",
+    "tags": [
+      "Glue"
+    ]
+  },
+  {
+    "id": "FLASH-026",
+    "term": "Séparation des responsabilités",
+    "definition": "Principe qui évite de confier audit, exécution et administration au même profil sans nécessité.",
+    "awsExample": "L'analyste sécurité lit les logs, l'admin IAM gère les droits, le job Glue traite les données.",
+    "frequentTrap": "Fusionner tous les rôles simplifie à court terme mais augmente le risque.",
+    "tags": [
+      "gouvernance"
+    ]
+  },
+  {
+    "id": "FLASH-027",
+    "term": "AWS STS",
+    "definition": "Service délivrant des identifiants temporaires.",
+    "awsExample": "Un rôle IAM est généralement assumé via STS.",
+    "frequentTrap": "STS n'est pas un annuaire d'utilisateurs.",
+    "tags": [
+      "IAM",
+      "credentials temporaires"
+    ]
+  },
+  {
+    "id": "FLASH-028",
+    "term": "Compte root",
+    "definition": "Compte maître du compte AWS avec privilèges très élevés.",
+    "awsExample": "À utiliser seulement pour des cas exceptionnels et protégés par MFA.",
+    "frequentTrap": "Jamais pour les tâches quotidiennes ou les scripts.",
+    "tags": [
+      "IAM"
+    ]
+  },
+  {
+    "id": "FLASH-029",
+    "term": "Audit",
+    "definition": "Capacité à retracer des actions et décisions liées aux accès.",
+    "awsExample": "CloudTrail aide à auditer les changements IAM ou S3.",
+    "frequentTrap": "Sans journaux fiables, l'enquête devient fragile.",
+    "tags": [
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-030",
+    "term": "Traçabilité",
+    "definition": "Capacité à suivre qui a fait quoi, quand et dans quel contexte.",
+    "awsExample": "La traçabilité aide à investiguer une exposition S3.",
+    "frequentTrap": "La traçabilité ne remplace pas la prévention.",
+    "tags": [
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-031",
+    "term": "Cloud Quest",
+    "definition": "Parcours pratique de découverte des services et raisonnements cloud.",
+    "awsExample": "Il aide à reconnaître IAM, S3, CloudTrail ou CloudWatch dans des cas simples.",
+    "frequentTrap": "Cloud Quest ne donne pas l'examen exact.",
+    "tags": [
+      "CloudQuest"
+    ]
+  },
+  {
+    "id": "FLASH-032",
+    "term": "Policy Evaluation Logic",
+    "definition": "Logique AWS qui combine les policies applicables à une requête.",
+    "awsExample": "Un `Deny` explicite bloque même s'il existe un `Allow` ailleurs.",
+    "frequentTrap": "L'évaluation ne dépend pas juste de l'ordre d'écriture des policies.",
+    "tags": [
+      "IAM",
+      "évaluation"
+    ]
+  },
+  {
+    "id": "FLASH-033",
+    "term": "Bucket public par erreur",
+    "definition": "Incident où un bucket ou ses objets sont exposés involontairement.",
+    "awsExample": "Il faut réduire l'accès public, puis enquêter via les journaux.",
+    "frequentTrap": "Fermer l'accès sans analyser l'incident est insuffisant.",
+    "tags": [
+      "S3",
+      "incident"
+    ]
+  },
+  {
+    "id": "FLASH-034",
+    "term": "CloudWatch Logs",
+    "definition": "Service ou composant de CloudWatch orienté journaux.",
+    "awsExample": "Un job Glue ou une fonction applicative peut y écrire ses logs.",
+    "frequentTrap": "CloudWatch Logs n'indique pas à lui seul quelle identité a modifié IAM.",
+    "tags": [
+      "observabilité"
+    ]
+  },
+  {
+    "id": "FLASH-035",
+    "term": "CloudTrail Event History",
+    "definition": "Historique d'événements utile pour les premières investigations.",
+    "awsExample": "On y cherche qui a modifié un rôle ou une bucket policy.",
+    "frequentTrap": "Ce n'est pas un moteur d'autorisation.",
+    "tags": [
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-036",
+    "term": "KMS",
+    "definition": "Service de gestion de clés pouvant aussi participer au contrôle d'accès à la donnée.",
+    "awsExample": "L'usage d'une clé de chiffrement peut lui-même être autorisé ou refusé.",
+    "frequentTrap": "Le chiffrement ne rend pas inutile la gouvernance des permissions S3.",
+    "tags": [
+      "chiffrement"
+    ]
+  },
+  {
+    "id": "FLASH-037",
+    "term": "Accès temporaire",
+    "definition": "Accès limité dans le temps via des identifiants temporaires.",
+    "awsExample": "Utile pour un prestataire ou un besoin de déploiement de courte durée.",
+    "frequentTrap": "Ne pas remplacer ce besoin par une clé statique oubliée.",
+    "tags": [
+      "IAM"
+    ]
+  },
+  {
+    "id": "FLASH-038",
+    "term": "Historique de session",
+    "definition": "Trace locale des sessions d'entraînement de l'étudiant.",
+    "awsExample": "L'application peut enregistrer date, score et catégories faibles.",
+    "frequentTrap": "Un bon historique aide à cibler les révisions, pas à mémoriser des réponses isolées.",
+    "tags": [
+      "méthode"
+    ]
+  },
+  {
+    "id": "FLASH-039",
+    "term": "Notions à revoir",
+    "definition": "Synthèse des concepts sur lesquels l'étudiant se trompe le plus.",
+    "awsExample": "Différence CloudTrail / CloudWatch ou gestion du root user.",
+    "frequentTrap": "L'idée n'est pas de stresser, mais de prioriser les 4 jours de préparation.",
+    "tags": [
+      "méthode"
+    ]
+  },
+  {
+    "id": "FLASH-040",
+    "term": "Révision par erreurs",
+    "definition": "Méthode consistant à retravailler les questions ratées après une simulation.",
+    "awsExample": "Rejouer ses erreurs aide à ancrer le raisonnement.",
+    "frequentTrap": "Il ne faut pas seulement relire la bonne réponse ; il faut comprendre pourquoi l'autre était risquée.",
+    "tags": [
+      "méthode"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-901",
+    "term": "AWS Organizations",
+    "definition": "Service aidant à structurer plusieurs comptes AWS et leur gouvernance.",
+    "awsExample": "Il facilite les stratégies multi-comptes avec rôles, audit centralisé et gouvernance.",
+    "frequentTrap": "Ne pas croire qu'Organizations remplace IAM ou IAM Identity Center.",
+    "tags": [
+      "gouvernance",
+      "multi-compte"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-902",
+    "term": "Bucket Policy vs IAM Policy",
+    "definition": "Une bucket policy est attachée à la ressource S3 ; une IAM policy est attachée à l'identité.",
+    "awsExample": "Un accès inter-compte peut nécessiter une bonne configuration des deux côtés.",
+    "frequentTrap": "Penser qu'un seul côté suffit toujours.",
+    "tags": [
+      "S3",
+      "policy"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-903",
+    "term": "Journalisation",
+    "definition": "Ensemble des traces générées pour comprendre ce qui s'est passé.",
+    "awsExample": "CloudTrail et CloudWatch Logs complètent la journalisation côté AWS.",
+    "frequentTrap": "Journaliser sans jamais relire les traces ne suffit pas.",
+    "tags": [
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-904",
+    "term": "CloudWatch Alarm",
+    "definition": "Mécanisme d'alerte basé sur une métrique ou une condition.",
+    "awsExample": "Une alarme peut signaler un comportement anormal ou un échec d'exécution.",
+    "frequentTrap": "Une alarme ne remplace pas l'analyse de logs.",
+    "tags": [
+      "observabilité"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-905",
+    "term": "Compte central de sécurité",
+    "definition": "Compte dédié qui reçoit des journaux et consolide la supervision.",
+    "awsExample": "Plusieurs comptes applicatifs peuvent y envoyer leurs traces.",
+    "frequentTrap": "Centraliser ne veut pas dire ouvrir l'accès à tout le monde.",
+    "tags": [
+      "gouvernance",
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-906",
+    "term": "Accès inter-compte",
+    "definition": "Accès accordé entre deux comptes AWS sans rendre une ressource publique.",
+    "awsExample": "Un bucket S3 peut être partagé avec un compte audit via une policy appropriée.",
+    "frequentTrap": "Inter-compte n'est pas synonyme de public.",
+    "tags": [
+      "IAM",
+      "S3"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-907",
+    "term": "Condition IAM",
+    "definition": "Partie d'une policy qui restreint l'accès selon un contexte ou un attribut.",
+    "awsExample": "On peut utiliser une condition pour restreindre une action à un tag ou un environnement.",
+    "frequentTrap": "Une condition mal pensée peut bloquer ou ouvrir trop large.",
+    "tags": [
+      "IAM",
+      "policy"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-908",
+    "term": "Validation de policy",
+    "definition": "Pratique consistant à relire ou analyser une policy pour repérer les permissions excessives.",
+    "awsExample": "IAM Access Analyzer peut aider à détecter certains risques de policy.",
+    "frequentTrap": "Une policy qui fonctionne n'est pas forcément une bonne policy.",
+    "tags": [
+      "IAM",
+      "gouvernance"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-909",
+    "term": "IAM Access Analyzer",
+    "definition": "Outil AWS aidant à détecter des accès externes ou trop larges sur certaines ressources et policies.",
+    "awsExample": "Il peut mettre en évidence une exposition de ressource vers l'extérieur.",
+    "frequentTrap": "Ce n'est pas une preuve que toute la gouvernance IAM est parfaite.",
+    "tags": [
+      "IAM",
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-910",
+    "term": "Compte de service technique",
+    "definition": "Identité utilisée par une application ou un traitement automatisé.",
+    "awsExample": "Un job Glue ou une fonction Lambda travaille avec une identité technique.",
+    "frequentTrap": "Il ne faut pas lui donner les mêmes droits qu'à un administrateur humain.",
+    "tags": [
+      "IAM",
+      "workload"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-911",
+    "term": "Séparation humain / workload",
+    "definition": "Distinction entre accès humains et accès techniques.",
+    "awsExample": "Un analyste sécurité n'a pas le même profil qu'un job Glue.",
+    "frequentTrap": "Fusionner les deux brouille la traçabilité et la gouvernance.",
+    "tags": [
+      "gouvernance"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-912",
+    "term": "Traceability by design",
+    "definition": "Approche qui prévoit dès le départ comment les accès et actions seront tracés.",
+    "awsExample": "Choisir CloudTrail, CloudWatch Logs et des rôles séparés dès la conception.",
+    "frequentTrap": "Ajouter l'audit seulement après un incident coûte plus cher.",
+    "tags": [
+      "audit",
+      "méthode"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-913",
+    "term": "Annuaire fédéré",
+    "definition": "Source d'identité externe connectée à AWS pour l'accès humain.",
+    "awsExample": "Un annuaire d'université peut être connecté à IAM Identity Center.",
+    "frequentTrap": "Fédérer ne suffit pas si les permissions derrière restent mal définies.",
+    "tags": [
+      "SSO",
+      "fédération"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-914",
+    "term": "Lecture seule",
+    "definition": "Jeu de permissions qui autorise la consultation sans modification.",
+    "awsExample": "Un analyste sécurité peut lire CloudTrail sans changer IAM.",
+    "frequentTrap": "Lecture seule ne veut pas dire accès à tout.",
+    "tags": [
+      "IAM",
+      "principe"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-915",
+    "term": "Écriture contrôlée",
+    "definition": "Permission limitée aux actions de dépôt ou de mise à jour strictement nécessaires.",
+    "awsExample": "Un job écrit dans un bucket curated mais ne supprime pas tout le data lake.",
+    "frequentTrap": "Écrire quelque part n'implique pas d'administrer l'ensemble du service.",
+    "tags": [
+      "IAM",
+      "S3"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-916",
+    "term": "Enquête post-incident",
+    "definition": "Analyse menée après un problème d'accès ou d'exposition.",
+    "awsExample": "On recoupe identité, traces, ressource touchée et chronologie.",
+    "frequentTrap": "Corriger vite sans comprendre l'origine prépare la récidive.",
+    "tags": [
+      "incident",
+      "audit"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-917",
+    "term": "Score progressif QRM",
+    "definition": "Méthode d'entraînement qui valorise l'analyse option par option.",
+    "awsExample": "Dans l'app, une bonne option cochée vaut un point, tout comme une mauvaise option laissée décochée.",
+    "frequentTrap": "Ce score d'entraînement n'encourage pas le clic au hasard ; il encourage l'analyse.",
+    "tags": [
+      "méthode",
+      "app"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-918",
+    "term": "Session sauvegardée",
+    "definition": "État local d'une simulation ou d'un entraînement sauvegardé dans le navigateur.",
+    "awsExample": "Un refresh ne doit pas faire perdre une simulation en cours.",
+    "frequentTrap": "Changer de machine ou vider le navigateur efface ce stockage local.",
+    "tags": [
+      "app",
+      "méthode"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-919",
+    "term": "Réponse partielle",
+    "definition": "Réponse où une partie du raisonnement est correcte mais pas toute la sélection.",
+    "awsExample": "En QRM, une sélection incomplète peut donner un score partiel dans l'app.",
+    "frequentTrap": "Il faut comprendre ce qui manquait, pas seulement retenir la lettre correcte.",
+    "tags": [
+      "méthode",
+      "app"
+    ]
+  },
+  {
+    "id": "FLASH-BOOST-920",
+    "term": "PII redaction",
+    "definition": "Processus de masquage ou transformation d'informations identifiantes avant partage.",
+    "awsExample": "Un job Glue peut retirer ou masquer des colonnes sensibles avant diffusion.",
+    "frequentTrap": "Masquer la donnée ne dispense pas de contrôler qui peut lire le bucket.",
+    "tags": [
+      "Glue",
+      "PII"
+    ]
+  }
+]

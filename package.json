@@ -1,0 +1,23 @@
+{
+  "name": "practice-app-controle-acces-gestion-identite",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview",
+    "generate:data": "node ./scripts/generate_practice_data.js",
+    "validate:data": "node ./scripts/validate_question_bank.js",
+    "check:overlap": "node ./scripts/check_app_exam_overlap.js",
+    "qa": "npm run validate:data && npm run check:overlap"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react-refresh": "^1.3.6",
+    "vite": "^2.9.18"
+  }
+}
