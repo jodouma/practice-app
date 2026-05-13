@@ -164,6 +164,11 @@ button {
   display: none;
 }
 
+.desktop-sidebar {
+  position: sticky;
+  top: 18px;
+}
+
 .home-panel {
   grid-column: span 4;
 }
@@ -686,6 +691,119 @@ button {
   color: var(--muted);
 }
 
+.mobile-exam-topbar {
+  display: none;
+}
+
+.prompt-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.prompt-pill {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(22, 33, 43, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  text-align: left;
+}
+
+.prompt-pill span {
+  font-weight: 700;
+}
+
+.prompt-pill small {
+  color: var(--muted);
+}
+
+.prompt-pill-current {
+  background: var(--accent-soft);
+  border-color: rgba(13, 91, 99, 0.32);
+}
+
+.prompt-pill-answered {
+  box-shadow: inset 0 0 0 1px rgba(31, 122, 84, 0.18);
+}
+
+.prompt-pill-unanswered {
+  box-shadow: inset 0 0 0 1px rgba(22, 33, 43, 0.04);
+}
+
+.prompt-pill-flagged {
+  border-color: rgba(191, 138, 31, 0.38);
+  box-shadow: inset 0 0 0 2px rgba(191, 138, 31, 0.18);
+}
+
+.question-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(22, 33, 43, 0.03);
+  border: 1px solid rgba(22, 33, 43, 0.06);
+}
+
+.autosave-card-compact p {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+}
+
+.scenario-context-panel {
+  margin: 14px 0 16px;
+  border-radius: 18px;
+  background: rgba(22, 33, 43, 0.04);
+  border: 1px solid rgba(22, 33, 43, 0.08);
+}
+
+.scenario-context-panel summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.scenario-context-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.scenario-context-body {
+  padding: 0 16px 16px;
+}
+
+.scenario-progress {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scenario-question-card-active {
+  margin-top: 0;
+}
+
+.mobile-prompt-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.mobile-prompt-strip .prompt-pill {
+  min-width: 52px;
+  width: auto;
+  padding: 10px 12px;
+  justify-items: center;
+}
+
+.mobile-prompt-strip .prompt-pill small {
+  display: none;
+}
+
 .mobile-summary-grid {
   display: grid;
   gap: 12px;
@@ -716,17 +834,24 @@ button {
   padding: 0 14px 14px;
 }
 
-@media (max-width: 1280px) {
-  .workspace-grid {
-    grid-template-columns: 280px minmax(0, 1fr);
+@media (min-width: 1025px) {
+  .simulation-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 24px;
   }
 
-  .hero h1 {
-    font-size: clamp(1.9rem, 4vw, 3rem);
+  .simulation-main,
+  .history-main {
+    order: 2;
+  }
+
+  .simulation-sidebar,
+  .history-sidebar {
+    order: 1;
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1024px) {
   .home-panel,
   .home-panel-large {
     grid-column: span 12;
@@ -775,6 +900,10 @@ button {
     display: none;
   }
 
+  .desktop-sidebar {
+    position: static;
+  }
+
   .history-sidebar .stack-list {
     display: flex;
     gap: 12px;
@@ -803,9 +932,34 @@ button {
     flex: 0 0 auto;
     scroll-snap-align: start;
   }
+
+  .mobile-exam-topbar {
+    position: sticky;
+    top: 10px;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+    margin: -2px 0 14px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(22, 33, 43, 0.08);
+    box-shadow: 0 8px 24px rgba(22, 33, 43, 0.1);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobile-exam-topbar strong {
+    font-size: 1rem;
+  }
+
+  .mobile-exam-topbar span {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
 }
 
-@media (max-width: 900px) {
+@media (min-width: 768px) and (max-width: 1024px) {
   .app-shell {
     padding: 18px 14px 28px;
   }
@@ -832,18 +986,22 @@ button {
     line-height: 1.15;
   }
 
-  .unit-list {
-    grid-template-columns: 1fr;
-  }
-
   .mobile-summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .result-kpis,
   .flashcard-mini-stats,
   .learning-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-card {
+    padding: 20px;
+  }
+
+  .prompt-nav-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .nav-tabs {
@@ -859,14 +1017,14 @@ button {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .app-shell {
-    padding: 16px 14px 28px;
+    padding: 12px 12px 24px;
   }
 
   .hero {
-    padding: 22px 18px;
-    border-radius: 24px;
+    padding: 18px 16px;
+    border-radius: 22px;
   }
 
   .dual-column {
@@ -892,15 +1050,15 @@ button {
   }
 
   .panel-with-action-dock {
-    padding-bottom: 106px;
+    padding-bottom: 122px;
   }
 
   .action-dock {
     position: sticky;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
     z-index: 20;
-    margin-top: 20px;
-    padding: 12px;
+    margin-top: 16px;
+    padding: 10px;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.96);
     border: 1px solid rgba(22, 33, 43, 0.08);
@@ -937,9 +1095,16 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .question-card {
+    padding: 16px;
+    margin-top: 12px;
+  }
+
   .option-card {
     grid-template-columns: 1fr;
     gap: 10px;
+    min-height: 56px;
+    width: 100%;
   }
 
   .option-letter {
@@ -962,6 +1127,14 @@ button {
   .history-sidebar .stack-list,
   .mobile-unit-list {
     margin-top: 12px;
+  }
+
+  .prompt-nav-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .mobile-summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1004,7 +1177,7 @@ button {
   }
 
   .panel-with-action-dock {
-    padding-bottom: 118px;
+    padding-bottom: 132px;
   }
 
   .action-dock {
@@ -1021,6 +1194,11 @@ button {
   .history-sidebar .history-pill,
   .mobile-unit-list .unit-pill {
     min-width: min(86vw, 280px);
+  }
+
+  .mobile-exam-topbar {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 

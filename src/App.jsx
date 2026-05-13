@@ -95,9 +95,14 @@ function ensureSimulation(value) {
   if (!Array.isArray(value.units)) return null;
   return {
     ...value,
-    flaggedUnitIds: Array.isArray(value.flaggedUnitIds) ? value.flaggedUnitIds : [],
+    flaggedPromptIds: Array.isArray(value.flaggedPromptIds)
+      ? value.flaggedPromptIds
+      : Array.isArray(value.flaggedUnitIds)
+        ? value.flaggedUnitIds
+        : [],
     answersById: ensureRecord(value.answersById),
     currentUnitIndex: typeof value.currentUnitIndex === "number" ? value.currentUnitIndex : 0,
+    currentPromptOffset: typeof value.currentPromptOffset === "number" ? value.currentPromptOffset : 0,
     durationSeconds: typeof value.durationSeconds === "number" ? value.durationSeconds : EXAM_CONFIG.durationMinutes * 60
   };
 }
@@ -251,7 +256,8 @@ function buildSimulationSession(allQuestions) {
     startedAt: Date.now(),
     durationSeconds: EXAM_CONFIG.durationMinutes * 60,
     currentUnitIndex: 0,
-    flaggedUnitIds: [],
+    currentPromptOffset: 0,
+    flaggedPromptIds: [],
     units,
     answersById: {},
     completed: false,
@@ -290,6 +296,75 @@ function getAnsweredPromptCount(session) {
 function getCurrentSimulationSection(session) {
   const unit = session.units[session.currentUnitIndex];
   return unit ? unit.section : "A";
+}
+
+function getPromptId(unit, promptOffset = 0) {
+  return unit.kind === "scenario" ? unit.questions[promptOffset]?.id : unit.id;
+}
+
+function getPromptQuestion(unit, promptOffset = 0) {
+  return unit.kind === "scenario" ? unit.questions[promptOffset] : unit;
+}
+
+function clampPromptOffset(unit, promptOffset = 0) {
+  const maxOffset = Math.max(getUnitPromptCount(unit) - 1, 0);
+  return Math.min(Math.max(promptOffset, 0), maxOffset);
+}
+
+function getPromptDescriptors(session) {
+  const prompts = [];
+  session.units.forEach((unit, unitIndex) => {
+    if (unit.kind === "scenario") {
+      unit.questions.forEach((question, promptOffset) => {
+        prompts.push({
+          id: question.id,
+          unitId: unit.id,
+          unitIndex,
+          promptOffset,
+          globalIndex: prompts.length,
+          section: unit.section,
+          category: question.category || unit.category,
+          label: `Q${prompts.length + 1}`,
+          title: question.question,
+          kind: "scenario-question",
+          scenarioTitle: unit.title
+        });
+      });
+    } else {
+      prompts.push({
+        id: unit.id,
+        unitId: unit.id,
+        unitIndex,
+        promptOffset: 0,
+        globalIndex: prompts.length,
+        section: unit.section,
+        category: unit.category,
+        label: `Q${prompts.length + 1}`,
+        title: unit.question,
+        kind: "question"
+      });
+    }
+  });
+  return prompts;
+}
+
+function getCurrentPrompt(session) {
+  const unit = session.units[session.currentUnitIndex];
+  if (!unit) return null;
+  const promptOffset = clampPromptOffset(unit, session.currentPromptOffset || 0);
+  let globalIndex = 0;
+  for (let index = 0; index < session.currentUnitIndex; index += 1) {
+    globalIndex += getUnitPromptCount(session.units[index]);
+  }
+  globalIndex += promptOffset;
+  return {
+    unit,
+    unitIndex: session.currentUnitIndex,
+    promptOffset,
+    globalIndex,
+    question: getPromptQuestion(unit, promptOffset),
+    promptId: getPromptId(unit, promptOffset)
+  };
 }
 
 function formatDuration(totalSeconds) {
@@ -816,19 +891,57 @@ function AppContent() {
 
   function toggleFlag(unitId) {
     setActiveSimulation((prev) => {
-      const flagged = prev.flaggedUnitIds.includes(unitId)
-        ? prev.flaggedUnitIds.filter((item) => item !== unitId)
-        : [...prev.flaggedUnitIds, unitId];
-      return { ...prev, flaggedUnitIds: flagged, autoSavedAt: Date.now() };
+      const flagged = prev.flaggedPromptIds.includes(unitId)
+        ? prev.flaggedPromptIds.filter((item) => item !== unitId)
+        : [...prev.flaggedPromptIds, unitId];
+      return { ...prev, flaggedPromptIds: flagged, autoSavedAt: Date.now() };
     });
   }
 
-  function goToSimulationUnit(index) {
-    setActiveSimulation((prev) => ({
-      ...prev,
-      autoSavedAt: Date.now(),
-      currentUnitIndex: Math.min(Math.max(index, 0), prev.units.length - 1)
-    }));
+  function goToSimulationPosition(unitIndex, promptOffset = 0) {
+    setActiveSimulation((prev) => {
+      const safeUnitIndex = Math.min(Math.max(unitIndex, 0), prev.units.length - 1);
+      const unit = prev.units[safeUnitIndex];
+      return {
+        ...prev,
+        autoSavedAt: Date.now(),
+        currentUnitIndex: safeUnitIndex,
+        currentPromptOffset: clampPromptOffset(unit, promptOffset)
+      };
+    });
+  }
+
+  function goToSimulationPrompt(globalPromptIndex) {
+    setActiveSimulation((prev) => {
+      if (!prev?.units?.length) return prev;
+      const descriptors = getPromptDescriptors(prev);
+      const target = descriptors[Math.min(Math.max(globalPromptIndex, 0), descriptors.length - 1)];
+      if (!target) return prev;
+      return {
+        ...prev,
+        autoSavedAt: Date.now(),
+        currentUnitIndex: target.unitIndex,
+        currentPromptOffset: target.promptOffset
+      };
+    });
+  }
+
+  function moveSimulationPrompt(direction) {
+    setActiveSimulation((prev) => {
+      if (!prev?.units?.length) return prev;
+      const current = getCurrentPrompt(prev);
+      if (!current) return prev;
+      const descriptors = getPromptDescriptors(prev);
+      const nextIndex = Math.min(Math.max(current.globalIndex + direction, 0), descriptors.length - 1);
+      const target = descriptors[nextIndex];
+      if (!target) return prev;
+      return {
+        ...prev,
+        autoSavedAt: Date.now(),
+        currentUnitIndex: target.unitIndex,
+        currentPromptOffset: target.promptOffset
+      };
+    });
   }
 
   function finalizeSimulation(reason = "Terminé") {
@@ -1019,7 +1132,10 @@ function AppContent() {
       }
     : null;
 
-  const currentSimulationUnit = activeSimulation ? activeSimulation.units[activeSimulation.currentUnitIndex] : null;
+  const simulationPromptDescriptors = activeSimulation ? getPromptDescriptors(activeSimulation) : [];
+  const currentSimulationPrompt = activeSimulation ? getCurrentPrompt(activeSimulation) : null;
+  const currentSimulationUnit = currentSimulationPrompt?.unit || null;
+  const currentSimulationQuestion = currentSimulationPrompt?.question || null;
   const currentLearnQuestion = learnSession ? learnSession.questions[learnSession.currentIndex] : null;
   const currentLearnFeedback = currentLearnQuestion ? learnSession?.resultsById[currentLearnQuestion.id] : null;
   const flashcard = flashcardSession.cards[flashcardSession.currentIndex];
@@ -1213,7 +1329,7 @@ function AppContent() {
 
       {view === "simulation" && activeSimulation && currentSimulationUnit && (
         <main className="workspace-grid simulation-layout">
-          <aside className="surface sidebar simulation-sidebar">
+          <aside className="surface sidebar desktop-sidebar simulation-sidebar">
             <Timer remainingSeconds={simulationRemainingSeconds} />
             <ProgressBar
               value={simulationProgress.answered}
@@ -1228,8 +1344,8 @@ function AppContent() {
                   type="button"
                   className={`section-chip ${simulationProgress.section === key ? "section-chip-active" : ""}`}
                   onClick={() => {
-                    const index = activeSimulation.units.findIndex((unit) => unit.section === key);
-                    if (index >= 0) goToSimulationUnit(index);
+                    const target = simulationPromptDescriptors.find((prompt) => prompt.section === key);
+                    if (target) goToSimulationPosition(target.unitIndex, target.promptOffset);
                   }}
                 >
                   {section.label}
@@ -1240,27 +1356,28 @@ function AppContent() {
               <strong>Session sauvegardée automatiquement.</strong>
               <p>Dernière sauvegarde : {formatTimestamp(activeSimulation.autoSavedAt || Date.now())}</p>
             </div>
-            <div className="unit-list">
-              {activeSimulation.units.map((unit, index) => {
-                const answered = unit.kind === "scenario"
-                  ? unit.questions.filter((question) => !isAnswerEmpty(question, activeSimulation.answersById[question.id])).length
-                  : !isAnswerEmpty(unit, activeSimulation.answersById[unit.id])
-                    ? 1
-                    : 0;
+            <div className="prompt-nav-grid">
+              {simulationPromptDescriptors.map((prompt) => {
+                const question = prompt.kind === "scenario-question"
+                  ? activeSimulation.units[prompt.unitIndex].questions[prompt.promptOffset]
+                  : activeSimulation.units[prompt.unitIndex];
+                const isAnswered = !isAnswerEmpty(question, activeSimulation.answersById[prompt.id]);
+                const isFlagged = activeSimulation.flaggedPromptIds.includes(prompt.id);
+                const isCurrent = currentSimulationPrompt?.promptId === prompt.id;
                 return (
                   <button
-                    key={unit.id}
+                    key={prompt.id}
                     type="button"
-                    className={`unit-pill ${index === activeSimulation.currentUnitIndex ? "unit-pill-active" : ""} ${
-                      activeSimulation.flaggedUnitIds.includes(unit.id) ? "unit-pill-flagged" : ""
+                    className={`prompt-pill ${isCurrent ? "prompt-pill-current" : ""} ${
+                      isAnswered ? "prompt-pill-answered" : "prompt-pill-unanswered"
+                    } ${isFlagged ? "prompt-pill-flagged" : ""}`}
+                    onClick={() => goToSimulationPosition(prompt.unitIndex, prompt.promptOffset)}
+                    title={`${prompt.label} · ${prompt.section} · ${isAnswered ? "Répondu" : "Non répondu"}${
+                      isFlagged ? " · À revoir" : ""
                     }`}
-                    onClick={() => goToSimulationUnit(index)}
                   >
-                    <span>{unit.section}</span>
-                    <strong>{unit.kind === "scenario" ? unit.title : `Question ${index + 1}`}</strong>
-                    <small>
-                      {answered}/{getUnitPromptCount(unit)} répondu(s)
-                    </small>
+                    <span>{prompt.label}</span>
+                    <small>{isFlagged ? "À revoir" : isAnswered ? "Répondu" : "Non répondu"}</small>
                   </button>
                 );
               })}
@@ -1268,26 +1385,34 @@ function AppContent() {
           </aside>
 
           <section className="surface main-panel panel-with-action-dock simulation-main">
+            <div className="mobile-exam-topbar mobile-only">
+              <strong>{formatDuration(simulationRemainingSeconds)}</strong>
+              <span>{Math.round((simulationProgress.answered / simulationProgress.total) * 100)}%</span>
+              <span>{EXAM_CONFIG.sections[currentSimulationPrompt?.unit.section]?.label || "Section"}</span>
+              <span>
+                Question {currentSimulationPrompt ? currentSimulationPrompt.globalIndex + 1 : 1}/{simulationProgress.total}
+              </span>
+            </div>
             <div className="mobile-only simulation-mobile-summary">
-              <div className="mobile-summary-grid">
-                <div className="kpi-card">
-                  <span>Temps restant</span>
-                  <strong>{formatDuration(simulationRemainingSeconds)}</strong>
-                </div>
-                <div className="kpi-card">
-                  <span>Progression</span>
-                  <strong>
-                    {simulationProgress.answered} / {simulationProgress.total}
-                  </strong>
-                </div>
-                <div className="kpi-card">
-                  <span>Section active</span>
-                  <strong>{EXAM_CONFIG.sections[simulationProgress.section]?.label || "Simulation"}</strong>
-                </div>
-              </div>
               <details className="mobile-details">
-                <summary>Ouvrir le plan de la simulation</summary>
+                <summary>Questions, sections et progression</summary>
                 <div className="mobile-details-body">
+                  <div className="mobile-summary-grid">
+                    <div className="kpi-card">
+                      <span>Temps restant</span>
+                      <strong>{formatDuration(simulationRemainingSeconds)}</strong>
+                    </div>
+                    <div className="kpi-card">
+                      <span>Progression</span>
+                      <strong>
+                        {simulationProgress.answered} / {simulationProgress.total}
+                      </strong>
+                    </div>
+                    <div className="kpi-card">
+                      <span>Section active</span>
+                      <strong>{EXAM_CONFIG.sections[simulationProgress.section]?.label || "Simulation"}</strong>
+                    </div>
+                  </div>
                   <div className="section-summary">
                     <h3>Sections</h3>
                     {Object.entries(EXAM_CONFIG.sections).map(([key, section]) => (
@@ -1296,39 +1421,36 @@ function AppContent() {
                         type="button"
                         className={`section-chip ${simulationProgress.section === key ? "section-chip-active" : ""}`}
                         onClick={() => {
-                          const index = activeSimulation.units.findIndex((unit) => unit.section === key);
-                          if (index >= 0) goToSimulationUnit(index);
+                          const target = simulationPromptDescriptors.find((prompt) => prompt.section === key);
+                          if (target) goToSimulationPosition(target.unitIndex, target.promptOffset);
                         }}
                       >
                         {section.label}
                       </button>
                     ))}
                   </div>
-                  <div className="autosave-card">
+                  <div className="autosave-card autosave-card-compact">
                     <strong>Session sauvegardée automatiquement.</strong>
                     <p>Dernière sauvegarde : {formatTimestamp(activeSimulation.autoSavedAt || Date.now())}</p>
                   </div>
-                  <div className="unit-list mobile-unit-list">
-                    {activeSimulation.units.map((unit, index) => {
-                      const answered = unit.kind === "scenario"
-                        ? unit.questions.filter((question) => !isAnswerEmpty(question, activeSimulation.answersById[question.id])).length
-                        : !isAnswerEmpty(unit, activeSimulation.answersById[unit.id])
-                          ? 1
-                          : 0;
+                  <div className="mobile-prompt-strip">
+                    {simulationPromptDescriptors.map((prompt) => {
+                      const question = prompt.kind === "scenario-question"
+                        ? activeSimulation.units[prompt.unitIndex].questions[prompt.promptOffset]
+                        : activeSimulation.units[prompt.unitIndex];
+                      const isAnswered = !isAnswerEmpty(question, activeSimulation.answersById[prompt.id]);
+                      const isFlagged = activeSimulation.flaggedPromptIds.includes(prompt.id);
+                      const isCurrent = currentSimulationPrompt?.promptId === prompt.id;
                       return (
                         <button
-                          key={`mobile-${unit.id}`}
+                          key={`mobile-prompt-${prompt.id}`}
                           type="button"
-                          className={`unit-pill ${index === activeSimulation.currentUnitIndex ? "unit-pill-active" : ""} ${
-                            activeSimulation.flaggedUnitIds.includes(unit.id) ? "unit-pill-flagged" : ""
-                          }`}
-                          onClick={() => goToSimulationUnit(index)}
+                          className={`prompt-pill ${isCurrent ? "prompt-pill-current" : ""} ${
+                            isAnswered ? "prompt-pill-answered" : "prompt-pill-unanswered"
+                          } ${isFlagged ? "prompt-pill-flagged" : ""}`}
+                          onClick={() => goToSimulationPosition(prompt.unitIndex, prompt.promptOffset)}
                         >
-                          <span>{unit.section}</span>
-                          <strong>{unit.kind === "scenario" ? unit.title : `Question ${index + 1}`}</strong>
-                          <small>
-                            {answered}/{getUnitPromptCount(unit)} répondu(s)
-                          </small>
+                          <span>{prompt.globalIndex + 1}</span>
                         </button>
                       );
                     })}
@@ -1341,9 +1463,12 @@ function AppContent() {
             </div>
 
             {currentSimulationUnit.kind === "question" ? (
-              <div className="question-panel">
+              <div className="question-panel question-card">
                 <div className="question-metadata">
                   <span className="meta-pill">{EXAM_CONFIG.sections[currentSimulationUnit.section].label}</span>
+                  <span className="meta-pill meta-pill-muted">
+                    Question {currentSimulationPrompt.globalIndex + 1}/{simulationProgress.total}
+                  </span>
                   <span className="meta-pill meta-pill-muted">{currentSimulationUnit.category}</span>
                   <span className="meta-pill meta-pill-muted">{currentSimulationUnit.difficulty}</span>
                 </div>
@@ -1356,61 +1481,70 @@ function AppContent() {
                 />
               </div>
             ) : (
-              <div className="question-panel">
+              <div className="question-panel question-card">
                 <div className="question-metadata">
                   <span className="meta-pill">{EXAM_CONFIG.sections.C.label}</span>
+                  <span className="meta-pill meta-pill-muted">
+                    Question {currentSimulationPrompt.globalIndex + 1}/{simulationProgress.total}
+                  </span>
                   <span className="meta-pill meta-pill-muted">{currentSimulationUnit.category}</span>
                   <span className="meta-pill meta-pill-muted">Scénario</span>
                 </div>
                 <h2>{currentSimulationUnit.title}</h2>
-                <p className="scenario-context">{currentSimulationUnit.context}</p>
-                <pre className="diagram-box">{currentSimulationUnit.diagram}</pre>
-                <div className="scenario-questions">
-                  {currentSimulationUnit.questions.map((question) => (
-                    <div key={question.id} className="scenario-question-card">
-                      <h3>{question.question}</h3>
-                      <p className="instruction-line">{getQuestionInstruction(question)}</p>
-                      <QuestionOptions
-                        question={question}
-                        value={activeSimulation.answersById[question.id] || (question.type === "multiple" ? [] : "")}
-                        onChange={(value) => updateSimulationAnswer(question, value)}
-                      />
-                    </div>
-                  ))}
+                <details className="scenario-context-panel" open={currentSimulationPrompt.promptOffset === 0}>
+                  <summary>Contexte et schéma du scénario</summary>
+                  <div className="scenario-context-body">
+                    <p className="scenario-context">{currentSimulationUnit.context}</p>
+                    <pre className="diagram-box">{currentSimulationUnit.diagram}</pre>
+                  </div>
+                </details>
+                <div className="scenario-progress">
+                  Sous-question {currentSimulationPrompt.promptOffset + 1}/{currentSimulationUnit.questions.length}
+                </div>
+                <div className="scenario-question-card scenario-question-card-active">
+                  <h3>{currentSimulationQuestion.question}</h3>
+                  <p className="instruction-line">{getQuestionInstruction(currentSimulationQuestion)}</p>
+                  <QuestionOptions
+                    question={currentSimulationQuestion}
+                    value={activeSimulation.answersById[currentSimulationQuestion.id] || (currentSimulationQuestion.type === "multiple" ? [] : "")}
+                    onChange={(value) => updateSimulationAnswer(currentSimulationQuestion, value)}
+                  />
                 </div>
               </div>
             )}
 
-            <div className="button-row button-row-spread action-dock">
+            <div className="button-row button-row-spread action-dock mobile-bottom-nav">
               <div className="button-row">
                 <button
                   type="button"
                   className="ghost-button"
-                  disabled={activeSimulation.currentUnitIndex === 0}
-                  onClick={() => goToSimulationUnit(activeSimulation.currentUnitIndex - 1)}
+                  disabled={currentSimulationPrompt.globalIndex === 0}
+                  onClick={() => moveSimulationPrompt(-1)}
                 >
-                  Question précédente
+                  Précédent
                 </button>
                 <button
                   type="button"
-                  className="ghost-button"
-                  disabled={activeSimulation.currentUnitIndex === activeSimulation.units.length - 1}
-                  onClick={() => goToSimulationUnit(activeSimulation.currentUnitIndex + 1)}
+                  className={`ghost-button ${activeSimulation.flaggedPromptIds.includes(currentSimulationPrompt.promptId) ? "ghost-button-warning" : ""}`}
+                  onClick={() => toggleFlag(currentSimulationPrompt.promptId)}
                 >
-                  Passer / suivante
+                  {activeSimulation.flaggedPromptIds.includes(currentSimulationPrompt.promptId) ? "À revoir ✓" : "À revoir"}
                 </button>
               </div>
               <div className="button-row">
-                <button
-                  type="button"
-                  className={`ghost-button ${activeSimulation.flaggedUnitIds.includes(currentSimulationUnit.id) ? "ghost-button-warning" : ""}`}
-                  onClick={() => toggleFlag(currentSimulationUnit.id)}
-                >
-                  {activeSimulation.flaggedUnitIds.includes(currentSimulationUnit.id) ? "Retirer le marqueur" : "Marquer à revoir"}
-                </button>
-                <button type="button" className="primary-button" onClick={() => finalizeSimulation("Soumission manuelle")}>
-                  Terminer
-                </button>
+                {currentSimulationPrompt.globalIndex === simulationProgress.total - 1 ? (
+                  <button type="button" className="primary-button" onClick={() => finalizeSimulation("Soumission manuelle")}>
+                    Terminer
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={() => moveSimulationPrompt(1)}
+                  >
+                    Suivant
+                  </button>
+                )}
               </div>
             </div>
           </section>
