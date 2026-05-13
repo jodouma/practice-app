@@ -7,6 +7,35 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module">
+      const isGitHubPagesHost = window.location.hostname === "jodouma.github.io";
+      const moduleScript = document.createElement("script");
+      moduleScript.type = "module";
+
+      if (isGitHubPagesHost) {
+        const stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = "/practice-app/assets/app.css";
+        document.head.appendChild(stylesheet);
+        moduleScript.src = "/practice-app/assets/app.js";
+      } else {
+        moduleScript.src = "/src/main.jsx";
+      }
+
+      moduleScript.onerror = () => {
+        const root = document.getElementById("root");
+        if (root) {
+          root.innerHTML = `
+            <main style="max-width: 760px; margin: 48px auto; padding: 24px; font-family: Arial, sans-serif; line-height: 1.5;">
+              <h1>Chargement impossible</h1>
+              <p>L'application n'a pas pu charger ses fichiers JavaScript.</p>
+              <p>Rechargez la page dans quelques secondes. Si le problème persiste sur GitHub Pages, le dernier build n'est peut-être pas encore publié.</p>
+            </main>
+          `;
+        }
+      };
+
+      document.body.appendChild(moduleScript);
+    </script>
   </body>
-  </html>
+</html>
