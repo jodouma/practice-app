@@ -3,13 +3,41 @@ import questionsData from "./data/questions.json";
 import flashcardsData from "./data/flashcards.json";
 import { EXAM_CONFIG } from "./config/examConfig";
 
+const STORAGE_VERSION = "1.0.0";
+const STORAGE_PREFIX = "practiceApp.v1";
 const STORAGE_KEYS = {
-  activeSimulation: "caig_v3_active_simulation",
-  history: "caig_v3_history",
-  mistakes: "caig_v3_mistakes",
-  flashcards: "caig_v3_flashcards",
-  lastResult: "caig_v3_last_result"
+  version: `${STORAGE_PREFIX}.version`,
+  activeSimulation: `${STORAGE_PREFIX}.activeSimulation`,
+  history: `${STORAGE_PREFIX}.sessionHistory`,
+  mistakes: `${STORAGE_PREFIX}.mistakes`,
+  flashcards: `${STORAGE_PREFIX}.flashcardProgress`,
+  lastResult: `${STORAGE_PREFIX}.lastResult`,
+  preferences: `${STORAGE_PREFIX}.preferences`
 };
+const LEGACY_STORAGE_KEYS = [
+  "caig_v2_active_simulation",
+  "caig_v2_history",
+  "caig_v2_mistakes",
+  "caig_v2_flashcards",
+  "caig_v2_last_result",
+  "caig_v3_active_simulation",
+  "caig_v3_history",
+  "caig_v3_mistakes",
+  "caig_v3_flashcards",
+  "caig_v3_last_result"
+];
+
+function isStorageAvailable() {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    const probe = `${STORAGE_PREFIX}.probe`;
+    window.localStorage.setItem(probe, "ok");
+    window.localStorage.removeItem(probe);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 
 function readStorageJson(key, fallback) {
   try {
@@ -657,6 +685,7 @@ class AppErrorBoundary extends React.Component {
 }
 
 function AppContent() {
+  const [storageEnabled] = useState(() => isStorageAvailable());
   const [view, setView] = useState(DEFAULT_VIEW);
   const [history, setHistory] = useState(() => ensureArray(readStorageJson(STORAGE_KEYS.history, [])));
   const [mistakeRegistry, setMistakeRegistry] = useState(() => ensureRecord(readStorageJson(STORAGE_KEYS.mistakes, {})));
@@ -680,6 +709,18 @@ function AppContent() {
     () => ["Toutes", ...Array.from(new Set(practicePool.map((question) => question.category))).sort((a, b) => a.localeCompare(b, "fr"))],
     [practicePool]
   );
+
+  useEffect(() => {
+    if (!storageEnabled || typeof window === "undefined" || !window.localStorage) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.version, STORAGE_VERSION);
+      for (const key of LEGACY_STORAGE_KEYS) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (error) {
+      // ignore storage migration failures
+    }
+  }, [storageEnabled]);
 
   useEffect(() => {
     writeStorageJson(STORAGE_KEYS.history, history);
@@ -1024,6 +1065,15 @@ function AppContent() {
               questions sont tirées aléatoirement, le timer tourne sur 2h et la session se sauvegarde
               toute seule.
             </p>
+            {!storageEnabled && (
+              <div className="resume-card">
+                <strong>Sauvegarde locale indisponible</strong>
+                <p>
+                  La sauvegarde locale n’est pas disponible dans ce navigateur. Vous pouvez utiliser
+                  l’application, mais vos résultats ne seront pas conservés.
+                </p>
+              </div>
+            )}
             <ul className="feature-list">
               <li>32 questions courtes, 10 questions moyennes, 5 scénarios.</li>
               <li>Retour arrière, questions à revoir, reprise après refresh.</li>
@@ -1141,6 +1191,14 @@ function AppContent() {
               <li>{mistakesList.length} question(s) dans “Mes erreurs”.</li>
               <li>Barème appliqué : +1 si correct, 0 sinon.</li>
             </ul>
+            <div className="tips-inline">
+              <strong>Confidentialité :</strong> vos résultats sont enregistrés uniquement dans votre
+              navigateur. Aucune inscription n’est nécessaire et aucune donnée n’est envoyée à un serveur.
+            </div>
+            <div className="tips-inline">
+              Si vous changez de téléphone, d’ordinateur ou de navigateur, l’historique ne sera pas
+              transféré automatiquement.
+            </div>
             <div className="button-row">
               <button type="button" className="ghost-button" onClick={() => setView("history")}>
                 Voir l'historique

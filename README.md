@@ -109,6 +109,28 @@ L'application enregistre dans `localStorage` :
 
 Ce stockage est local au navigateur utilisé.
 
+Clés utilisées :
+- `practiceApp.v1.version`
+- `practiceApp.v1.activeSimulation`
+- `practiceApp.v1.sessionHistory`
+- `practiceApp.v1.mistakes`
+- `practiceApp.v1.flashcardProgress`
+- `practiceApp.v1.lastResult`
+
+## Données, sessions et confidentialité
+
+- aucune inscription n'est nécessaire
+- l'application n'utilise ni backend ni base de données
+- les résultats sont enregistrés localement dans le navigateur
+- chaque étudiant dispose donc d'un historique indépendant
+- vider les données du navigateur supprime l'historique local
+- changer d'appareil, de navigateur ou de profil repart de zéro
+- plusieurs étudiants peuvent utiliser l'application en même temps, car GitHub Pages sert simplement les mêmes fichiers statiques à tous
+
+## Lien pour les étudiants
+
+[https://jodouma.github.io/practice-app/](https://jodouma.github.io/practice-app/)
+
 ## Installation
 
 Depuis WSL :
@@ -232,6 +254,9 @@ npm run validate:data
 npm run check:overlap
 npm run build
 ```
+
+Checklist multi-utilisateur :
+- [QA_MULTI_USER.md](/mnt/c/Users/Youss/Desktop/Contrôle%20d%27acc%C3%A8s%20et%20gestion%20d%27identit%C3%A9/practice-app/QA_MULTI_USER.md)
 
 ## Next steps
 

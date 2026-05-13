@@ -11,6 +11,18 @@ Cette application vous aide à préparer l'examen de `Contrôle d'accès et gest
 Important :
 Les questions de l'application ne sont **pas** les questions exactes de l'examen officiel.
 
+## Données, sessions et confidentialité
+
+- aucune inscription n'est nécessaire
+- aucune donnée n'est envoyée à un serveur
+- vos résultats sont enregistrés uniquement dans votre navigateur
+- si vous changez de téléphone, d'ordinateur ou de navigateur, votre historique ne sera pas transféré automatiquement
+- plusieurs étudiants peuvent utiliser l'application en même temps sans voir les résultats des autres
+
+## Lien pour les étudiants
+
+[https://jodouma.github.io/practice-app/](https://jodouma.github.io/practice-app/)
+
 ## Mode 1 — Simulation examen
 
 À utiliser quand vous voulez vous placer en conditions proches de l'épreuve.
